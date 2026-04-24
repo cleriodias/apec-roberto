@@ -13,6 +13,10 @@ import type {
   ClientePedido,
   NotaFiscalResult,
   NotaFiscalUnit,
+  RemanejarFuncionarioResponse,
+  RemanejarFuncionarioUnit,
+  RemanejarFuncionariosResult,
+  RemanejarFuncionarioUser,
   SendChatMessagePayload,
   VendasHojeLoja,
   VendasHojeResult,
@@ -209,6 +213,35 @@ function normalizeNotaFiscalUnit(item: unknown): NotaFiscalUnit {
     total_gerado: parseNumber(source.total_gerado),
     generation_active: Boolean(source.generation_active),
   };
+}
+
+function normalizeRemanejarFuncionarioUser(item: unknown): RemanejarFuncionarioUser | null {
+  const source = item && typeof item === 'object' ? (item as JsonObject) : {};
+  const id = Number(source.id ?? 0);
+  const name = String(source.name ?? '').trim();
+
+  if (!id || !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+    unit_id: source.unit_id === null || source.unit_id === undefined ? null : Number(source.unit_id),
+    unit_name: String(source.unit_name ?? '').trim(),
+  };
+}
+
+function normalizeRemanejarFuncionarioUnit(item: unknown): RemanejarFuncionarioUnit | null {
+  const source = item && typeof item === 'object' ? (item as JsonObject) : {};
+  const id = Number(source.id ?? 0);
+  const name = String(source.name ?? '').trim();
+
+  if (!id || !name) {
+    return null;
+  }
+
+  return { id, name };
 }
 
 function extractChatImageUrl(message: string): string | null {
@@ -489,6 +522,54 @@ export async function setNotaFiscalGeneration(
 
   const data = await parseResponse(response);
   return normalizeNotaFiscalUnit(data.unit);
+}
+
+export async function fetchRemanejarFuncionarios(): Promise<RemanejarFuncionariosResult> {
+  const response = await fetch(`${API_BASE_URL}/mobile/remanejar-funcionarios/`, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  const data = await parseResponse(response);
+
+  return {
+    users: Array.isArray(data.users)
+      ? data.users.map(normalizeRemanejarFuncionarioUser).filter((item): item is RemanejarFuncionarioUser => item !== null)
+      : [],
+    units: Array.isArray(data.units)
+      ? data.units.map(normalizeRemanejarFuncionarioUnit).filter((item): item is RemanejarFuncionarioUnit => item !== null)
+      : [],
+  };
+}
+
+export async function remanejarFuncionario(
+  userId: number,
+  unitId: number
+): Promise<RemanejarFuncionarioResponse> {
+  const response = await fetch(`${API_BASE_URL}/mobile/remanejar-funcionarios/`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      unit_id: unitId,
+    }),
+  });
+
+  const data = await parseResponse(response);
+  const user = normalizeRemanejarFuncionarioUser(data.user);
+
+  if (!user) {
+    throw new Error('Resposta invalida ao remanejar funcionario.');
+  }
+
+  return {
+    user,
+    message: String(data.message ?? 'Funcionario remanejado com sucesso.'),
+  };
 }
 
 export async function fetchChatSnapshot(

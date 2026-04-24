@@ -71,6 +71,28 @@ export type NotaFiscalResult = {
   };
 };
 
+export type RemanejarFuncionarioUser = {
+  id: number;
+  name: string;
+  unit_id: number | null;
+  unit_name: string;
+};
+
+export type RemanejarFuncionarioUnit = {
+  id: number;
+  name: string;
+};
+
+export type RemanejarFuncionariosResult = {
+  users: RemanejarFuncionarioUser[];
+  units: RemanejarFuncionarioUnit[];
+};
+
+export type RemanejarFuncionarioResponse = {
+  user: RemanejarFuncionarioUser;
+  message: string;
+};
+
 export type ChatUser = {
   id: number;
   name: string;

@@ -23,6 +23,13 @@ const quickLinks = [
     borderColor: '#466052',
     titleColor: '#F2FAF5',
   },
+  {
+    path: '/remanejar-funcionarios',
+    title: 'Remanejar Funcionarios',
+    backgroundColor: '#7B6548',
+    borderColor: '#5E4D36',
+    titleColor: '#FFF8EF',
+  },
 ] as const;
 
 export default function IndexScreen() {
