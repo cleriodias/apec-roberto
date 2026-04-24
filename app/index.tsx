@@ -30,7 +30,7 @@ export default function IndexScreen() {
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.badge}>PEC - RODRIGO</Text>
+          <Text style={styles.badge}>PEC - ROBERTO</Text>
           <Text style={styles.subtitle}>Controle de Lojas</Text>
         </View>
 
