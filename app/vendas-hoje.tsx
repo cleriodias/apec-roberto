@@ -76,9 +76,8 @@ export default function VendasHojeScreen() {
       >
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>Relatorio</Text>
-          <Text style={styles.title}>Vendas Hoje</Text>
           <Text style={styles.subtitle}>
-            Total de vendas em dinheiro e cartao por loja{data.date ? ` em ${formatDate(data.date)}` : ''}.
+            Total de vendas em {data.date ? ` em ${formatDate(data.date)}` : ''}.
           </Text>
           <View style={styles.periodTabs}>
             <Pressable

@@ -100,10 +100,8 @@ export default function NotaFiscalScreen() {
       >
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>Fiscal</Text>
-          <Text style={styles.title}>Nota Fiscal</Text>
           <Text style={styles.subtitle}>
-            Acompanhe o total gerado em nota no dia corrente
-            {data.date ? ` (${formatDate(data.date)})` : ''} e controle a geracao automatica por loja.
+            Gerado em {data.date ? ` (${formatDate(data.date)})` : ''}.
           </Text>
         </View>
 

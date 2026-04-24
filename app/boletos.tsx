@@ -183,10 +183,6 @@ export default function BoletosScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void loadBoletos(filters, true)} />}
       >
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>Financeiro</Text>
-          <Text style={styles.title}>Boletos</Text>
-        </View>
 
         <View style={styles.filtersCard}>
           <Text style={styles.sectionTitle}>Filtros</Text>
