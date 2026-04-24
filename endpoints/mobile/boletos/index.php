@@ -120,7 +120,7 @@ try {
     $total = (float) ($totalStatement->fetch()['total'] ?? 0);
 
     $units = db()
-        ->query("select tb2_id as id, tb2_nome as name from tb2_unidades order by tb2_nome")
+        ->query("select tb2_id as id, tb2_nome as name from tb2_unidades where tb2_status = 1 order by tb2_nome")
         ->fetchAll();
 
     json_response([

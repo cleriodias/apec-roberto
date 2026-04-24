@@ -138,8 +138,16 @@ export default function BoletosScreen() {
     setActiveDateField(field);
   };
 
+  const applyFilters = (updater: (current: BoletoFilters) => BoletoFilters) => {
+    setDraftFilters((current) => {
+      const nextFilters = updater(current);
+      void loadBoletos(nextFilters);
+      return nextFilters;
+    });
+  };
+
   const updateDateFilter = (field: DateFilterField, value: string) => {
-    setDraftFilters((current) => ({
+    applyFilters((current) => ({
       ...current,
       [field]: value,
     }));
@@ -155,9 +163,10 @@ export default function BoletosScreen() {
     }
 
     const field = activeDateField;
-    setDraftFilters((current) => ({
+    const nextValue = dateToIsoDate(selectedDate);
+    applyFilters((current) => ({
       ...current,
-      [field]: dateToIsoDate(selectedDate),
+      [field]: nextValue,
     }));
   };
 
@@ -192,7 +201,7 @@ export default function BoletosScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
               <Pressable
                 style={[styles.chip, draftFilters.unit_id === 'all' && styles.chipActive]}
-                onPress={() => setDraftFilters((current) => ({ ...current, unit_id: 'all' }))}
+                onPress={() => applyFilters((current) => ({ ...current, unit_id: 'all' }))}
               >
                 <Text style={[styles.chipText, draftFilters.unit_id === 'all' && styles.chipTextActive]}>Todas</Text>
               </Pressable>
@@ -203,7 +212,7 @@ export default function BoletosScreen() {
                   <Pressable
                     key={unit.id}
                     style={[styles.chip, selected && styles.chipActive]}
-                    onPress={() => setDraftFilters((current) => ({ ...current, unit_id: String(unit.id) }))}
+                    onPress={() => applyFilters((current) => ({ ...current, unit_id: String(unit.id) }))}
                   >
                     <Text style={[styles.chipText, selected && styles.chipTextActive]}>{unit.name}</Text>
                   </Pressable>
@@ -263,7 +272,7 @@ export default function BoletosScreen() {
                   <Pressable
                     key={option.value}
                     style={[styles.statusButton, selected && styles.statusButtonActive]}
-                    onPress={() => setDraftFilters((current) => ({ ...current, paid: option.value }))}
+                    onPress={() => applyFilters((current) => ({ ...current, paid: option.value }))}
                   >
                     <Text style={[styles.statusButtonText, selected && styles.statusButtonTextActive]}>
                       {option.label}
@@ -273,10 +282,6 @@ export default function BoletosScreen() {
               })}
             </View>
           </View>
-
-          <Pressable style={styles.applyButton} onPress={() => void loadBoletos(draftFilters)}>
-            <Text style={styles.applyButtonText}>Aplicar filtros</Text>
-          </Pressable>
         </View>
 
         <View style={styles.summaryCard}>
@@ -447,15 +452,6 @@ const styles = StyleSheet.create({
   statusButtonActive: { borderColor: '#5A4333', backgroundColor: '#5A4333' },
   statusButtonText: { color: '#5A4333', fontSize: 13, fontWeight: '700' },
   statusButtonTextActive: { color: '#FFF8F0' },
-  applyButton: {
-    marginTop: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 16,
-    backgroundColor: '#111111',
-    paddingVertical: 14,
-  },
-  applyButtonText: { color: '#F8F6F2', fontSize: 15, fontWeight: '800' },
   summaryCard: {
     borderRadius: 22,
     backgroundColor: '#EAE1D7',
