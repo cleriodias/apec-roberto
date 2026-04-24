@@ -1,0 +1,22 @@
+{
+  "name": "apec-roberto",
+  "slug": "apec-roberto",
+  "icon": "./logo.png",
+  "android": {
+    "package": "com.cleriodias.apecroberto",
+    "adaptiveIcon": {
+      "foregroundImage": "./logo.png",
+      "backgroundColor": "#FFFFFF"
+    }
+  },
+  "plugins": [
+    "@react-native-community/datetimepicker",
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "Permita o acesso a galeria para enviar fotos no chat.",
+        "cameraPermission": "Permita o uso da camera para registrar fotos no chat."
+      }
+    ]
+  ]
+}
