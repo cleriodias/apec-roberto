@@ -589,12 +589,16 @@ export async function remanejarFuncionario(
   };
 }
 
-export async function fetchEstoqueProducts(search = ''): Promise<EstoqueResult> {
+export async function fetchEstoqueProducts(search = '', types: number[] = [0, 1, 3]): Promise<EstoqueResult> {
   const url = new URL(`${API_BASE_URL}/mobile/estoque/simple.php`);
   const normalizedSearch = search.trim();
 
   if (normalizedSearch) {
     url.searchParams.set('q', normalizedSearch);
+  }
+
+  if (types.length) {
+    url.searchParams.set('types', types.join(','));
   }
 
   const response = await fetch(url.toString(), {

@@ -44,6 +44,34 @@ function estoque_type_label(int $type): string
     };
 }
 
+function estoque_default_type_filters(): array
+{
+    return [0, 1, 3];
+}
+
+function estoque_requested_type_filters(): array
+{
+    $rawTypes = trim((string) ($_GET['types'] ?? ''));
+
+    if ($rawTypes === '') {
+        return estoque_default_type_filters();
+    }
+
+    $types = [];
+
+    foreach (explode(',', $rawTypes) as $type) {
+        $normalized = trim($type);
+
+        if ($normalized === '' || !preg_match('/^-?\d+$/', $normalized)) {
+            continue;
+        }
+
+        $types[] = (int) $normalized;
+    }
+
+    return array_values(array_unique($types));
+}
+
 function estoque_product_payload(array $row): array
 {
     $type = (int) ($row['type'] ?? 0);
@@ -81,19 +109,27 @@ try {
     if ($requestMethod === 'GET') {
         $search = trim((string) ($_GET['q'] ?? ''));
         $params = [];
-        $whereSql = '';
+        $whereParts = [];
+
+        $typeFilters = estoque_requested_type_filters();
+
+        if ($typeFilters !== []) {
+            $whereParts[] = 'tb1_tipo in (' . implode(', ', array_map('intval', $typeFilters)) . ')';
+        }
 
         if ($search !== '') {
             $safeTerm = str_replace(['%', '_'], ['\\%', '\\_'], $search);
             $params['search_like'] = '%' . $safeTerm . '%';
 
             if (ctype_digit($search)) {
-                $whereSql = ' where tb1_id = :search_id or tb1_codbar like :search_like';
+                $whereParts[] = '(tb1_id = :search_id or tb1_codbar like :search_like)';
                 $params['search_id'] = (int) $search;
             } else {
-                $whereSql = ' where tb1_nome like :search_like';
+                $whereParts[] = 'tb1_nome like :search_like';
             }
         }
+
+        $whereSql = $whereParts === [] ? '' : ' where ' . implode(' and ', $whereParts);
 
         $orderSql = estoque_column_exists('tb1_status')
             ? ' order by tb1_status desc, tb1_nome asc'

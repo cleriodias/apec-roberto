@@ -74,6 +74,34 @@ function type_label(int $type): string
     };
 }
 
+function default_type_filters(): array
+{
+    return [0, 1, 3];
+}
+
+function requested_type_filters(): array
+{
+    $rawTypes = trim((string) ($_GET['types'] ?? ''));
+
+    if ($rawTypes === '') {
+        return default_type_filters();
+    }
+
+    $types = [];
+
+    foreach (explode(',', $rawTypes) as $type) {
+        $normalized = trim($type);
+
+        if ($normalized === '' || !preg_match('/^-?\d+$/', $normalized)) {
+            continue;
+        }
+
+        $types[] = (int) $normalized;
+    }
+
+    return array_values(array_unique($types));
+}
+
 function status_label(int $status): string
 {
     return $status === 1 ? 'Ativo' : 'Inativo';
@@ -126,7 +154,13 @@ try {
     if ($requestMethod === 'GET') {
         $search = trim((string) ($_GET['q'] ?? ''));
         $params = [];
-        $whereSql = '';
+        $whereParts = [];
+
+        $typeFilters = requested_type_filters();
+
+        if ($typeFilters !== []) {
+            $whereParts[] = 'tb1_tipo in (' . implode(', ', array_map('intval', $typeFilters)) . ')';
+        }
 
         if ($search !== '') {
             $safeTerm = str_replace(['%', '_'], ['\\%', '\\_'], $search);
@@ -134,12 +168,14 @@ try {
             $params['search_like'] = $likeTerm;
 
             if (ctype_digit($search)) {
-                $whereSql = ' where tb1_id = :search_id or tb1_codbar like :search_like';
+                $whereParts[] = '(tb1_id = :search_id or tb1_codbar like :search_like)';
                 $params['search_id'] = (int) $search;
             } else {
-                $whereSql = ' where tb1_nome like :search_like';
+                $whereParts[] = 'tb1_nome like :search_like';
             }
         }
+
+        $whereSql = $whereParts === [] ? '' : ' where ' . implode(' and ', $whereParts);
 
         $columns = table_columns('tb1_produto');
         $orderSql = in_array('tb1_status', $columns, true)
