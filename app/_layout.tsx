@@ -24,6 +24,7 @@ export default function RootLayout() {
         <Stack.Screen name="vendas-hoje" options={{ title: 'Vendas Hoje' }} />
         <Stack.Screen name="nota-fiscal" options={{ title: 'Nota Fiscal' }} />
         <Stack.Screen name="remanejar-funcionarios" options={{ title: 'Remanejar Funcionarios' }} />
+        <Stack.Screen name="estoque" options={{ title: 'Estoque' }} />
         <Stack.Screen name="feature/[slug]" options={{ title: 'Funcionalidade' }} />
       </Stack>
       <StatusBar style="dark" />

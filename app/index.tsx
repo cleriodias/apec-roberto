@@ -30,6 +30,13 @@ const quickLinks = [
     borderColor: '#5E4D36',
     titleColor: '#FFF8EF',
   },
+  {
+    path: '/estoque',
+    title: 'Estoque',
+    backgroundColor: '#556B55',
+    borderColor: '#405340',
+    titleColor: '#F3FAF3',
+  },
 ] as const;
 
 export default function IndexScreen() {

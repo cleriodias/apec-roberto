@@ -11,6 +11,8 @@ import type {
   ChatUser,
   ClientSession,
   ClientePedido,
+  EstoqueProduct,
+  EstoqueResult,
   NotaFiscalResult,
   NotaFiscalUnit,
   RemanejarFuncionarioResponse,
@@ -242,6 +244,21 @@ function normalizeRemanejarFuncionarioUnit(item: unknown): RemanejarFuncionarioU
   }
 
   return { id, name };
+}
+
+function normalizeEstoqueProduct(item: unknown): EstoqueProduct {
+  const source = item && typeof item === 'object' ? (item as JsonObject) : {};
+
+  return {
+    id: Number(source.id ?? source.tb1_id ?? 0),
+    name: String(source.name ?? source.tb1_nome ?? ''),
+    barcode: String(source.barcode ?? source.tb1_codbar ?? ''),
+    type: Number(source.type ?? source.tb1_tipo ?? 0),
+    type_label: String(source.type_label ?? ''),
+    quantity: parseNumber(source.quantity ?? source.tb1_qtd ?? 0),
+    status: Number(source.status ?? source.tb1_status ?? 1),
+    status_label: String(source.status_label ?? ''),
+  };
 }
 
 function extractChatImageUrl(message: string): string | null {
@@ -570,6 +587,48 @@ export async function remanejarFuncionario(
     user,
     message: String(data.message ?? 'Funcionario remanejado com sucesso.'),
   };
+}
+
+export async function fetchEstoqueProducts(search = ''): Promise<EstoqueResult> {
+  const url = new URL(`${API_BASE_URL}/mobile/estoque/`);
+  const normalizedSearch = search.trim();
+
+  if (normalizedSearch) {
+    url.searchParams.set('q', normalizedSearch);
+  }
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  const data = await parseResponse(response);
+
+  return {
+    items: Array.isArray(data.items) ? data.items.map(normalizeEstoqueProduct) : [],
+    search: String(data.search ?? normalizedSearch),
+  };
+}
+
+export async function updateEstoqueProductQuantity(
+  productId: number,
+  quantity: number
+): Promise<EstoqueProduct> {
+  const response = await fetch(`${API_BASE_URL}/mobile/estoque/`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      product_id: productId,
+      quantity,
+    }),
+  });
+
+  const data = await parseResponse(response);
+  return normalizeEstoqueProduct(data.item);
 }
 
 export async function fetchChatSnapshot(

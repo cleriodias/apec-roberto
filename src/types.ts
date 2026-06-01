@@ -93,6 +93,22 @@ export type RemanejarFuncionarioResponse = {
   message: string;
 };
 
+export type EstoqueProduct = {
+  id: number;
+  name: string;
+  barcode: string;
+  type: number;
+  type_label: string;
+  quantity: number;
+  status: number;
+  status_label: string;
+};
+
+export type EstoqueResult = {
+  items: EstoqueProduct[];
+  search: string;
+};
+
 export type ChatUser = {
   id: number;
   name: string;
