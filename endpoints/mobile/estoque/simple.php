@@ -132,8 +132,8 @@ try {
         $whereSql = $whereParts === [] ? '' : ' where ' . implode(' and ', $whereParts);
 
         $orderSql = estoque_column_exists('tb1_status')
-            ? ' order by tb1_status desc, tb1_nome asc'
-            : ' order by tb1_nome asc';
+            ? ' order by (tb1_qtd > 0) desc, tb1_status desc, tb1_nome asc'
+            : ' order by (tb1_qtd > 0) desc, tb1_nome asc';
 
         $statement = db()->prepare(estoque_select_sql() . $whereSql . $orderSql . ' limit 80');
         $statement->execute($params);

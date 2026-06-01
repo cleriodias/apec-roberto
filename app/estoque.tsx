@@ -14,6 +14,13 @@ import {
 import { fetchEstoqueProducts, updateEstoqueProductQuantity } from '../src/services/api';
 import type { EstoqueProduct } from '../src/types';
 
+const defaultTypeFilters = [0, 1, 3];
+const typeOptions = [
+  { value: 0, label: 'Industria' },
+  { value: 1, label: 'Balanca' },
+  { value: 3, label: 'Producao' },
+];
+
 function formatQuantity(value: number) {
   return Number.isFinite(value) ? String(Math.trunc(value)) : '0';
 }
@@ -34,6 +41,7 @@ export default function EstoqueScreen() {
   const [drafts, setDrafts] = useState<Record<number, string>>({});
   const [search, setSearch] = useState('');
   const [lastSearch, setLastSearch] = useState('');
+  const [selectedTypes, setSelectedTypes] = useState<number[]>(defaultTypeFilters);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [savingId, setSavingId] = useState<number | null>(null);
@@ -41,8 +49,16 @@ export default function EstoqueScreen() {
   const [message, setMessage] = useState('');
 
   const indexedItems = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
+  const selectedTypesSummary = useMemo(
+    () =>
+      typeOptions
+        .filter((option) => selectedTypes.includes(option.value))
+        .map((option) => option.label)
+        .join(', '),
+    [selectedTypes]
+  );
 
-  const load = useCallback(async (nextSearch: string, isRefresh = false) => {
+  const load = useCallback(async (nextSearch: string, nextTypes: number[], isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -53,7 +69,7 @@ export default function EstoqueScreen() {
     setMessage('');
 
     try {
-      const result = await fetchEstoqueProducts(nextSearch);
+      const result = await fetchEstoqueProducts(nextSearch, nextTypes);
       setItems(result.items);
       setLastSearch(result.search);
       setDrafts(
@@ -68,7 +84,31 @@ export default function EstoqueScreen() {
   }, []);
 
   const submitSearch = () => {
-    void load(search.trim());
+    void load(search.trim(), selectedTypes);
+  };
+
+  const applyTypeFilters = (nextTypes: number[]) => {
+    setSelectedTypes(nextTypes);
+    void load(search.trim(), nextTypes);
+  };
+
+  const toggleTypeFilter = (type: number) => {
+    const isSelected = selectedTypes.includes(type);
+
+    if (isSelected && selectedTypes.length === 1) {
+      setError('Selecione ao menos um filtro de produto.');
+      return;
+    }
+
+    const nextTypes = isSelected
+      ? selectedTypes.filter((item) => item !== type)
+      : [...selectedTypes, type].sort((left, right) => left - right);
+
+    applyTypeFilters(nextTypes);
+  };
+
+  const resetTypeFilters = () => {
+    applyTypeFilters(defaultTypeFilters);
   };
 
   const updateDraft = (productId: number, value: string) => {
@@ -104,7 +144,7 @@ export default function EstoqueScreen() {
   };
 
   useEffect(() => {
-    void load('');
+    void load('', defaultTypeFilters);
   }, [load]);
 
   return (
@@ -112,12 +152,42 @@ export default function EstoqueScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(lastSearch, true)} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => void load(lastSearch, selectedTypes, true)} />
+        }
       >
         <View style={styles.hero}>
           <Text style={styles.eyebrow}>Produtos</Text>
           <Text style={styles.title}>Estoque</Text>
           <Text style={styles.subtitle}>Atualize a quantidade atual de qualquer produto cadastrado.</Text>
+        </View>
+
+        <View style={styles.filtersCard}>
+          <Text style={styles.sectionTitle}>Filtros</Text>
+          <Text style={styles.filtersHint}>Escolha os tipos que devem aparecer na lista inicial.</Text>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+            {typeOptions.map((option) => {
+              const selected = selectedTypes.includes(option.value);
+
+              return (
+                <Pressable
+                  key={option.value}
+                  style={[styles.chip, selected && styles.chipActive]}
+                  onPress={() => toggleTypeFilter(option.value)}
+                >
+                  <Text style={[styles.chipText, selected && styles.chipTextActive]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          <View style={styles.filtersFooter}>
+            <Text style={styles.filtersSummary}>Selecionados: {selectedTypesSummary}</Text>
+            <Pressable style={styles.resetButton} onPress={resetTypeFilters}>
+              <Text style={styles.resetButtonText}>Padrao</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.searchCard}>
@@ -150,7 +220,7 @@ export default function EstoqueScreen() {
           <View style={styles.feedbackCard}>
             <Text style={styles.errorTitle}>Falha ao carregar</Text>
             <Text style={styles.feedbackText}>{error}</Text>
-            <Pressable style={styles.retryButton} onPress={() => void load(lastSearch)}>
+            <Pressable style={styles.retryButton} onPress={() => void load(lastSearch, selectedTypes)}>
               <Text style={styles.retryButtonText}>Tentar novamente</Text>
             </Pressable>
           </View>
@@ -228,6 +298,44 @@ const styles = StyleSheet.create({
   },
   title: { color: '#2F241B', fontSize: 30, fontWeight: '800' },
   subtitle: { color: '#6F6152', fontSize: 15, lineHeight: 22 },
+  filtersCard: {
+    borderRadius: 22,
+    backgroundColor: '#FFFDF9',
+    borderWidth: 1,
+    borderColor: '#E4D8CA',
+    padding: 14,
+    gap: 12,
+  },
+  sectionTitle: { color: '#35281E', fontSize: 18, fontWeight: '800' },
+  filtersHint: { color: '#6F6152', fontSize: 14, lineHeight: 20 },
+  chipsRow: { gap: 8, paddingRight: 12 },
+  chip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#D8CBBB',
+    backgroundColor: '#F7F2EB',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  chipActive: { borderColor: '#5A4333', backgroundColor: '#5A4333' },
+  chipText: { color: '#5A4333', fontSize: 13, fontWeight: '700' },
+  chipTextActive: { color: '#FFF8F0' },
+  filtersFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  filtersSummary: { flex: 1, color: '#6A5B4C', fontSize: 13, lineHeight: 19 },
+  resetButton: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#D8CBBB',
+    backgroundColor: '#F8F4EE',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  resetButtonText: { color: '#5A4333', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
   searchCard: {
     borderRadius: 22,
     backgroundColor: '#FFFDF9',
