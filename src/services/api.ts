@@ -590,7 +590,7 @@ export async function remanejarFuncionario(
 }
 
 export async function fetchEstoqueProducts(search = ''): Promise<EstoqueResult> {
-  const url = new URL(`${API_BASE_URL}/mobile/estoque/`);
+  const url = new URL(`${API_BASE_URL}/mobile/estoque/simple.php`);
   const normalizedSearch = search.trim();
 
   if (normalizedSearch) {
@@ -615,7 +615,7 @@ export async function updateEstoqueProductQuantity(
   productId: number,
   quantity: number
 ): Promise<EstoqueProduct> {
-  const response = await fetch(`${API_BASE_URL}/mobile/estoque/`, {
+  const response = await fetch(`${API_BASE_URL}/mobile/estoque/simple.php`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
