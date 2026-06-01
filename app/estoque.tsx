@@ -246,7 +246,7 @@ export default function EstoqueScreen() {
                     <TextInput
                       value={drafts[item.id] ?? formatQuantity(item.quantity)}
                       onChangeText={(value) => updateDraft(item.id, value)}
-                      keyboardType="numbers-and-punctuation"
+                      keyboardType="numeric"
                       placeholder="0"
                       placeholderTextColor="#8A7B6B"
                       style={styles.quantityInput}
